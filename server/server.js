@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
@@ -16,7 +17,11 @@ app.use(cors({ origin: CLIENT_ORIGIN }));
 app.use(express.json());
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
+  host: process.env.DB_HOST || "localhost",
+  port: Number(process.env.DB_PORT || 5432),
+  database: process.env.DB_NAME || "crm",
+  user: process.env.DB_USER || "admin",
+  password: String(process.env.DB_PASSWORD || "")
 });
 
 const io = new Server(server, {
@@ -26,10 +31,7 @@ const io = new Server(server, {
   }
 });
 
-app.get("/", (req, res) => {
-  res.json({ message: "SRCRM API is running" });
-});
-
+/* API */
 app.get("/api/health", async (req, res) => {
   try {
     await pool.query("SELECT NOW()");
@@ -58,6 +60,7 @@ app.post("/api/:table", async (req, res) => {
     const values = Object.values(data);
 
     const placeholders = keys.map((_, i) => `$${i + 1}`).join(", ");
+
     const query = `
       INSERT INTO ${table} (${keys.join(", ")})
       VALUES (${placeholders})
@@ -88,6 +91,7 @@ app.put("/api/:table/:id", async (req, res) => {
     const values = Object.values(data);
 
     const setQuery = keys.map((key, i) => `${key}=$${i + 1}`).join(", ");
+
     const query = `
       UPDATE ${table}
       SET ${setQuery}
@@ -126,6 +130,13 @@ app.delete("/api/:table/:id", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+/* Frontend */
+app.use(express.static(path.join(__dirname, "../")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../index.html"));
 });
 
 io.on("connection", socket => {
