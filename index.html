@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SR Auto CRM</title>
+<!-- Styles and scripts are split for easy editing in Visual Studio Code -->
+<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+
+<!-- ══ AUTH ══ -->
+<div id="authScreen">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="brand-logo">🚗</div>
+      <h1>SR <span>Auto</span> CRM</h1>
+      <p>SR Group MMC — Azerbaijan</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login" onclick="switchAuthTab('login')">Вход / Giriş</button>
+      <button class="auth-tab" data-tab="register" onclick="switchAuthTab('register')">Регистрация / Qeydiyyat</button>
+    </div>
+    <div class="alert alert-danger" id="authErr"></div>
+    <form id="loginForm" onsubmit="doLogin(event)">
+      <div class="form-group"><label>Email</label><input class="form-control" type="email" id="liEmail" placeholder="you@srgroup.az" required autocomplete="email"></div>
+      <div class="form-group"><label id="lblPass">Пароль / Şifrə</label><input class="form-control" type="password" id="liPass" required autocomplete="current-password"></div>
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top:6px">Войти / Daxil ol</button>
+    </form>
+    <form id="regForm" class="hidden" onsubmit="doRegister(event)">
+      <div class="form-group"><label>Имя / Ad</label><input class="form-control" type="text" id="reName" required maxlength="60"></div>
+      <div class="form-group"><label>Email</label><input class="form-control" type="email" id="reEmail" required autocomplete="email"></div>
+      <div class="form-group"><label>Пароль / Şifrə (min 6)</label><input class="form-control" type="password" id="rePass" required minlength="6" autocomplete="new-password"></div>
+      <div class="form-row" style="margin-bottom:13px">
+        <div class="form-group" style="margin:0"><label>Отдел / Şöbə</label>
+          <select class="form-control" id="reDept"><option value="sales">Продажи</option><option value="marketing">Маркетинг</option><option value="service">Сервис</option><option value="it">IT</option><option value="procurement">Procurement</option><option value="callcenter">Call Center</option></select>
+        </div>
+        <div class="form-group" style="margin:0"><label>Компания</label>
+          <select class="form-control" id="reCo"><option value="changan">Changan</option><option value="lynk">Lynk & Co</option><option value="skoda">Škoda</option><option value="avatr">AVATR</option><option value="mercedes">Mercedes</option><option value="leap">Leap Motors</option></select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Создать аккаунт / Hesab yarat</button>
+    </form>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="appScreen" class="hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo">🚗</div>
+      <div>
+        <div class="sb-brand-name">SR <span>Auto</span></div>
+        <div class="sb-brand-sub">CRM System</div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="nav-section">
+        <div class="nav-label" id="nl-main">Главное</div>
+        <button class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')"><span class="ni">📊</span><span data-i="dashboard">Дашборд</span></button>
+        <button class="nav-item" data-page="clients" onclick="navigate('clients')"><span class="ni">👥</span><span data-i="clients">Клиенты</span></button>
+        <button class="nav-item" data-page="deals" onclick="navigate('deals')"><span class="ni">💼</span><span data-i="deals">Сделки</span></button>
+        <button class="nav-item" data-page="tasks" onclick="navigate('tasks')"><span class="ni">✅</span><span data-i="tasks">Задачи</span><span class="nav-badge hidden" id="taskBadge">0</span></button>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label" id="nl-mgmt">Управление</div>
+        <button class="nav-item" data-page="employees" onclick="navigate('employees')"><span class="ni">🏢</span><span data-i="employees">Сотрудники</span></button>
+        <button class="nav-item" data-page="documents" onclick="navigate('documents')"><span class="ni">📄</span><span data-i="documents">Документы</span></button>
+        <button class="nav-item" data-page="reports" onclick="navigate('reports')"><span class="ni">📈</span><span data-i="reports">Отчёты</span></button>
+        <button class="nav-item hidden" id="navAdmin" data-page="admin" onclick="navigate('admin')"><span class="ni">⚙️</span><span data-i="admin">Администрация</span></button>
+      </div>
+    </nav>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar" id="sbAvatar">?</div>
+        <div style="flex:1;min-width:0">
+          <div class="sb-user-name" id="sbName">—</div>
+          <div class="sb-user-role" id="sbRole">—</div>
+        </div>
+      </div>
+      <button class="nav-item" onclick="logout()" style="margin-top:4px"><span class="ni">↪</span><span data-i="logout">Выйти</span></button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-area">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn btn-ghost btn-icon" id="menuBtn" onclick="toggleSidebar()" style="display:none">☰</button>
+        <h1 class="page-title" id="pageTitle">Дашборд</h1>
+      </div>
+      <div class="topbar-right">
+        <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()">🌙</button>
+        <div class="lang-toggle">
+          <button class="lang-btn active" data-lang="ru" onclick="setLang('ru')">RU</button>
+          <button class="lang-btn" data-lang="az" onclick="setLang('az')">AZ</button>
+        </div>
+      </div>
+    </header>
+    <main class="content" id="pageContent"></main>
+  </div>
+</div>
+
+<!-- ══ MODAL ══ -->
+<div class="modal-overlay" id="modalOverlay" onclick="overlayClick(event)">
+  <div class="modal" id="mainModal">
+    <div class="modal-head">
+      <h3 class="modal-title" id="modalTitle"></h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<!-- ══ CONFIRM ══ -->
+<div class="modal-overlay" id="confirmOverlay" onclick="confirmOverlayClick(event)">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-head">
+      <h3 class="modal-title" id="confirmTitle">Подтверждение</h3>
+      <button class="modal-close" onclick="closeConfirm()">✕</button>
+    </div>
+    <div class="modal-body"><p id="confirmText" style="color:var(--muted);font-size:14px;line-height:1.6"></p></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeConfirm()" id="confirmCancelBtn">Отмена</button>
+      <button class="btn btn-danger" id="confirmOkBtn">Удалить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOASTS ══ -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+
+<script src="assets/js/backend/storage.service.js" defer></script>
+<script src="assets/js/backend/auth.service.js" defer></script>
+<script src="assets/js/backend/crm.service.js" defer></script>
+<script src="assets/js/frontend/ui.service.js" defer></script>
+<script src="assets/js/app/app.js" defer></script>
+</body>
+</html>
