@@ -19,6 +19,8 @@ const StorageService = (() => {
   const LOCAL_ONLY = new Set(['session', 'lang', 'theme']);
   const LOCAL_PREFIX = 'srcrm_';
   let cache = {};
+  const _token = (document.querySelector('meta[name="api-token"]') || {}).content || '';
+  const _authHdr = _token ? { Authorization: 'Bearer ' + _token } : {};
 
   function _serverKey(name) { return SERVER_KEY_MAP[name] || `srcrm_${name}`; }
   function _localKey(name) { return name.startsWith(LOCAL_PREFIX) ? name : LOCAL_PREFIX + name; }
@@ -26,9 +28,29 @@ const StorageService = (() => {
 
   async function syncFromServer() {
     try {
-      const res = await fetch('/api/store', { cache: 'no-store' });
+      const res = await fetch('/api/store', { cache: 'no-store', headers: _authHdr });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       cache = await res.json() || {};
+      var _MIGRATE = ['clients', 'deals', 'tasks', 'docs', 'acts', 'visits', 'sales', 'calls'];
+      _MIGRATE.forEach(function(name) {
+        var key = _serverKey(name);
+        if (!Object.prototype.hasOwnProperty.call(cache, key)) {
+          try {
+            var raw = localStorage.getItem(_localKey(name));
+            if (raw) {
+              var val = JSON.parse(raw);
+              if (Array.isArray(val) && val.length > 0) {
+                cache[key] = val;
+                fetch('/api/store/' + encodeURIComponent(key), {
+                  method: 'PUT',
+                  headers: Object.assign({ 'Content-Type': 'application/json' }, _authHdr),
+                  body: JSON.stringify({ value: val })
+                }).catch(function() {});
+              }
+            }
+          } catch(e) {}
+        }
+      });
       return cache;
     } catch (err) {
       console.warn('SRCRM server storage unavailable; using browser storage fallback.', err);
@@ -79,7 +101,7 @@ const StorageService = (() => {
     cache[key] = value;
     fetch('/api/store/' + encodeURIComponent(key), {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: Object.assign({ 'Content-Type': 'application/json' }, _authHdr),
       body: JSON.stringify({ value })
     }).catch(err => {
       console.warn('Server save failed; saving local fallback.', err);
@@ -91,7 +113,7 @@ const StorageService = (() => {
     if (LOCAL_ONLY.has(name)) { localStorage.removeItem(_localKey(name)); return; }
     const key = _serverKey(name);
     delete cache[key];
-    fetch('/api/store/' + encodeURIComponent(key), { method: 'DELETE' })
+    fetch('/api/store/' + encodeURIComponent(key), { method: 'DELETE', headers: _authHdr })
       .catch(err => console.warn('Server remove failed', err));
   }
 
@@ -126,5 +148,5 @@ const StorageService = (() => {
 
   function findById(name, id) { return getList(name).find(x => x.id === id) || null; }
 
-  return { ready, syncFromServer, get, set, remove, getList, setList, addItem, updateItem, deleteItem, findById, uid, now };
+  return { ready, syncFromServer, get, set, remove, getList, setList, addItem, updateItem, deleteItem, findById, uid, now, _authHdr };
 })();

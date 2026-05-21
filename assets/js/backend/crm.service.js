@@ -26,7 +26,7 @@ const CRMService = (() => {
     { value: 'negotiation', label: { ru: 'Переговоры',      az: 'Danışıqlar'         }, color: 'badge-yellow' },
     { value: 'proposal',    label: { ru: 'КП отправлено',   az: 'Təklif göndərildi' }, color: 'badge-purple' },
     { value: 'won',         label: { ru: 'Выиграна',        az: 'Qazanıldı'          }, color: 'badge-green'  },
-    { value: 'lost',        label: { ru: 'Проиграна',       az: 'Uduludu'            }, color: 'badge-red'    }
+    { value: 'lost',        label: { ru: 'Проиграна',       az: 'Uduldu'             }, color: 'badge-red'    }
   ];
 
   const PRIORITIES = [
@@ -39,7 +39,7 @@ const CRMService = (() => {
     { value: 'website',   label: { ru: 'Сайт',          az: 'Sayt'         } },
     { value: 'instagram', label: { ru: 'Instagram',     az: 'Instagram'    } },
     { value: 'referral',  label: { ru: 'Рекомендация',  az: 'Tövsiyə'      } },
-    { value: 'showroom',  label: { ru: 'Шоурум',        az: 'Şoroom'       } },
+    { value: 'showroom',  label: { ru: 'Шоурум',        az: 'Showroom'     } },
     { value: 'callcenter',label: { ru: 'Колл-центр',    az: 'Zəng Mərkəzi' } },
     { value: 'other',     label: { ru: 'Другое',        az: 'Digər'        } }
   ];
@@ -51,7 +51,7 @@ const CRMService = (() => {
     { value: 'tiktok',    label: { ru: 'TikTok',        az: 'TikTok'    } },
     { value: 'youtube',   label: { ru: 'YouTube',       az: 'YouTube'   } },
     { value: 'turbo_az',  label: { ru: 'Turbo.az',      az: 'Turbo.az'  } },
-    { value: 'showroom',  label: { ru: 'Шоурум',        az: 'Şoroom'    } },
+    { value: 'showroom',  label: { ru: 'Шоурум',        az: 'Showroom'  } },
     { value: 'referral',  label: { ru: 'Рекомендация',  az: 'Tövsiyə'   } },
     { value: 'other',     label: { ru: 'Другое',        az: 'Digər'     } }
   ];
@@ -109,7 +109,9 @@ const CRMService = (() => {
 
   function deleteClient(id) {
     StorageService.deleteItem('clients', id);
-    StorageService.setList('deals', StorageService.getList('deals').filter(d => d.clientId !== id));
+    StorageService.setList('deals',     StorageService.getList('deals').filter(d => d.clientId !== id));
+    StorageService.setList('tasks',     StorageService.getList('tasks').filter(t => t.relatedClient !== id));
+    StorageService.setList('documents', StorageService.getList('documents').filter(d => d.clientId !== id));
   }
 
   function getClient(id) { return StorageService.findById('clients', id); }

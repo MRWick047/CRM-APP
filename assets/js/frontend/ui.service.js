@@ -41,7 +41,7 @@ const UIService = (() => {
   /* ── CONFIRM ── */
   let _confirmResolve = null;
 
-  function confirm(text, okLabel = 'Удалить') {
+  function confirm(text, okLabel = 'Sil') {
     return new Promise(resolve => {
       _confirmResolve = resolve;
       document.getElementById('confirmText').textContent = text;

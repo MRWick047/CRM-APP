@@ -5,12 +5,41 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SR Auto CRM</title>
 <link rel="stylesheet" href="assets/css/main.css">
+<style>
+  /* Password input + show/hide toggle */
+  .pass-wrap { position: relative; }
+  .pass-wrap .form-control { padding-right: 44px; }
+  .pass-toggle {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0;
+    color: var(--muted, #888);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+  .pass-toggle:hover { background: rgba(0,0,0,0.06); }
+  .pass-toggle:focus { outline: 2px solid var(--primary, #4f46e5); outline-offset: 1px; }
+</style>
 </head>
 <body>
 
 <!-- ══ AUTH ══ -->
 <div id="authScreen">
-  <div class="auth-card">
+
+  <!-- Login Card -->
+  <div class="auth-card" id="loginCard">
     <div class="auth-brand">
       <div class="brand-logo">🚗</div>
       <h1>SR <span>Auto</span> CRM</h1>
@@ -19,10 +48,82 @@
     <div class="alert alert-danger" id="authErr"></div>
     <form id="loginForm" onsubmit="doLogin(event)">
       <div class="form-group"><label>Email</label><input class="form-control" type="email" id="liEmail" placeholder="you@srgroup.az" required autocomplete="email"></div>
-      <div class="form-group"><label>Şifrə / Пароль</label><input class="form-control" type="password" id="liPass" required autocomplete="current-password"></div>
+      <div class="form-group">
+        <label>Şifrə / Пароль</label>
+        <div class="pass-wrap">
+          <input class="form-control" type="password" id="liPass" required autocomplete="current-password">
+          <button type="button" class="pass-toggle" onclick="togglePass('liPass', this)" aria-label="Şifrəni göstər / Показать пароль" title="Göstər / Показать" tabindex="-1">👁</button>
+        </div>
+      </div>
       <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px">Daxil ol / Войти</button>
     </form>
+    <div style="text-align:center;margin-top:16px">
+      <a href="#" onclick="showRegister();return false;" class="auth-register-link">Qeydiyyat / Регистрация →</a>
+    </div>
   </div>
+
+  <!-- Register Card -->
+  <div class="auth-card hidden" id="registerCard">
+    <div class="auth-brand">
+      <div class="brand-logo">📝</div>
+      <h1>SR <span>Auto</span> CRM</h1>
+      <p>Yeni qeydiyyat / Новая регистрация</p>
+    </div>
+    <div class="alert alert-danger" id="regErr"></div>
+    <div class="alert alert-success hidden" id="regSuccess">
+      ✅ Qeydiyyat tamamlandı! Admin təsdiqini gözləyin.<br>
+      <small>Регистрация завершена! Ожидайте подтверждения администратора.</small>
+    </div>
+    <form id="registerForm" onsubmit="submitRegister(event)">
+      <div class="form-group">
+        <label>Ad Soyad / Имя Фамилия *</label>
+        <input class="form-control" type="text" id="regName" placeholder="Əli Əliyev" required maxlength="100">
+      </div>
+      <div class="form-group">
+        <label>Email *</label>
+        <input class="form-control" type="email" id="regEmail" placeholder="you@srgroup.az" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>Şifrə / Пароль * <small style="font-weight:400;text-transform:none">(min. 6 simvol)</small></label>
+        <div class="pass-wrap">
+          <input class="form-control" type="password" id="regPass" required minlength="6" autocomplete="new-password">
+          <button type="button" class="pass-toggle" onclick="togglePass('regPass', this)" aria-label="Şifrəni göstər / Показать пароль" title="Göstər / Показать" tabindex="-1">👁</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Şöbə / Отдел</label>
+          <select class="form-control" id="regDept">
+            <option value="sales">Satış / Продажи</option>
+            <option value="callcenter">Zəng mərkəzi / КЦ</option>
+            <option value="marketing">Marketing</option>
+            <option value="it">IT</option>
+            <option value="procurement">Satınalma / Закупки</option>
+            <option value="service">Servis / Сервис</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Şirkət / Компания</label>
+          <select class="form-control" id="regCompany">
+            <option value="changan">Changan</option>
+            <option value="lynkco">Lynk &amp; Co</option>
+            <option value="skoda">Skoda</option>
+            <option value="leapmotor">Leapmotor</option>
+            <option value="avatr">AVATR</option>
+            <option value="mercedes">Mercedes-Benz</option>
+            <option value="xpeng">XPENG</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px">
+        Qeydiyyatdan keç / Зарегистрироваться
+      </button>
+    </form>
+    <div style="text-align:center;margin-top:16px">
+      <a href="#" onclick="showLogin();return false;" class="auth-register-link">← Geri / Назад</a>
+    </div>
+  </div>
+
 </div>
 
 <!-- ══ APP ══ -->
@@ -44,6 +145,11 @@
         <button class="nav-item hidden" id="nav_visits" data-page="visits" onclick="navigate('visits')"><span class="ni">🚗</span><span data-i="visits">Ziyarətlər</span></button>
         <button class="nav-item hidden" id="nav_sales" data-page="sales" onclick="navigate('sales')"><span class="ni">💰</span><span data-i="sales">Satış</span></button>
         <button class="nav-item hidden" id="nav_calls" data-page="calls" onclick="navigate('calls')"><span class="ni">📞</span><span data-i="calls">Zənglər</span></button>
+        <button class="nav-item hidden" id="nav_3cx" data-page="3cx" onclick="navigate('3cx')"><span class="ni">☎️</span><span data-i="3cx">3CX</span></button>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label" id="nl-info-section"></div>
+        <button class="nav-item" id="nav_info" data-page="info" onclick="navigate('info')"><span class="ni">🏢</span><span data-i="info">Info</span></button>
       </div>
       <div class="nav-section">
         <div class="nav-label" id="nl-mgmt">İdarəetmə</div>
@@ -53,7 +159,7 @@
         <button class="nav-item hidden" id="nav_employees" data-page="employees" onclick="navigate('employees')"><span class="ni">🏢</span><span data-i="employees">İşçilər</span></button>
         <button class="nav-item hidden" id="nav_documents" data-page="documents" onclick="navigate('documents')"><span class="ni">📄</span><span data-i="documents">Sənədlər</span></button>
         <button class="nav-item hidden" id="nav_reports" data-page="reports" onclick="navigate('reports')"><span class="ni">📈</span><span data-i="reports">Hesabatlar</span></button>
-        <button class="nav-item hidden" id="nav_admin" data-page="admin" onclick="navigate('admin')"><span class="ni">⚙️</span><span data-i="admin">Administrasiya</span></button>
+        <button class="nav-item hidden" id="nav_admin" data-page="admin" onclick="navigate('admin')"><span class="ni">⚙️</span><span data-i="admin">Administrasiya</span><span class="nav-badge hidden" id="pendingBadge">0</span></button>
       </div>
     </nav>
     <div class="sb-footer">
@@ -117,6 +223,25 @@
 <!-- ══ TOASTS ══ -->
 <div class="toast-wrap" id="toastWrap"></div>
 
+<script>
+  /* Toggle password visibility on login/register forms */
+  function togglePass(inputId, btn) {
+    var input = document.getElementById(inputId);
+    if (!input) return;
+    var hidden = input.type === 'password';
+    input.type = hidden ? 'text' : 'password';
+    if (btn) {
+      btn.textContent = hidden ? '🙈' : '👁';
+      btn.setAttribute(
+        'aria-label',
+        hidden ? 'Şifrəni gizlət / Скрыть пароль' : 'Şifrəni göstər / Показать пароль'
+      );
+      btn.setAttribute('title', hidden ? 'Gizlət / Скрыть' : 'Göstər / Показать');
+    }
+  }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script src="assets/js/backend/storage.service.js" defer></script>
 <script src="assets/js/backend/auth.service.js" defer></script>
 <script src="assets/js/backend/crm.service.js" defer></script>

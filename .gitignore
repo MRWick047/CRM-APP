@@ -1,7 +1,8 @@
 node_modules/
-server/node_modules/
-
-.env
+server/data/
 server/.env
-
-.DS_Store
+*.bak
+*.bak*
+*.save
+*.save.*
+SR_Auto_CRM_Roadmap.xlsx
